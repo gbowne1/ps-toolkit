@@ -23,5 +23,25 @@ function Show-Timer {
     Play-Beep
 }
 
+function Show-Toast {
+    param ($title, $message)
+
+    [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+    $template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02)
+    $textNodes = $template.GetElementsByTagName("text")
+    $textNodes.Item(0).AppendChild($template.CreateTextNode($title)) | Out-Null
+    $textNodes.Item(1).AppendChild($template.CreateTextNode($message)) | Out-Null
+
+    $toast = [Windows.UI.Notifications.ToastNotification]::new($template)
+    $notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("PomodoroTimer")
+    $notifier.Show($toast)
+}
+
 Write-Host "=== PowerShell Pomodoro Timer ==="
-Write-Host "Focus: $($focusTime / 60) min | Break: $($breakTime / 60) min
+Write-Host "Focus: $($focusTime / 60) min | Break: $($breakTime / 60) min"
+
+for ($i = 1; $i -le $cycles; $i++) {
+    Write-Host "`nCycle $i of $cycles"
+    Show-Timer -totalSeconds $focusTime -label "Focus"
+    Show-Timer -totalSeconds $breakTime -label "Break"
+}
